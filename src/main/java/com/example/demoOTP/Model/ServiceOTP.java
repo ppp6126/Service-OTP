@@ -5,6 +5,7 @@ import lombok.Data;
 import javax.persistence.*;
 import java.sql.Time;
 import java.sql.Timestamp;
+import java.util.Calendar;
 import java.util.Date;
 
 @Entity
@@ -13,61 +14,120 @@ import java.util.Date;
 public class ServiceOTP {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long serviceOTP_id;
-    private Date date ;
-    private Timestamp expired ;
-    private int code ;
-    private String status ;
+    private Long id;
+    private Date crateDate ;
+    private Date compleseDate ;
+    private Calendar expiredDate ;
+    private int otpCode ;
+    private String referenceCode ;
+    private String uuId;
+    private String reqId ;
+    private String email ;
+    private String tel ;
+
+    @ManyToOne
+    @JoinColumn(name = "ownerId")
+    private Owner owner = new Owner() ;
 
     public ServiceOTP() {
     }
 
-    public ServiceOTP(Long serviceOTP_id, Date date, Timestamp expired, int code, String status) {
-        this.serviceOTP_id = serviceOTP_id;
-        this.date = date;
-        this.expired = expired;
-        this.code = code;
-        this.status = status;
+    public ServiceOTP(Date crateDate, Date compleseDate, Calendar expiredDate, int otpCode, String referenceCode, String uuId, String reqId) {
+        this.crateDate = crateDate;
+        this.compleseDate = compleseDate;
+        this.expiredDate = expiredDate;
+        this.otpCode = otpCode;
+        this.referenceCode = referenceCode;
+        this.uuId = uuId;
+        this.reqId = reqId;
     }
 
-    public Long getServiceOTP_id() {
-        return serviceOTP_id;
+    public Long getId() {
+        return id;
     }
 
-    public void setServiceOTP_id(Long serviceOTP_id) {
-        this.serviceOTP_id = serviceOTP_id;
+    public void setId(Long id) {
+        this.id = id;
     }
 
-    public Date getDate() {
-        return date;
+    public Date getCrateDate() {
+        return crateDate;
     }
 
-    public void setDate(Date date) {
-        this.date = date;
+    public void setCrateDate(Date crateDate) {
+        this.crateDate = crateDate;
     }
 
-    public Timestamp getExpired() {
-        return expired;
+    public Date getCompleseDate() {
+        return compleseDate;
     }
 
-    public void setExpired(Timestamp expired) {
-        this.expired = expired;
+    public void setCompleseDate(Date compleseDate) {
+        this.compleseDate = compleseDate;
     }
 
-    public int getCode() {
-        return code;
+    public Calendar getExpiredDate() {
+        return expiredDate;
     }
 
-    public void setCode(int code) {
-        this.code = code;
+    public void setExpiredDate(Calendar expiredDate) {
+        this.expiredDate = expiredDate;
     }
 
-    public String getStatus() {
-        return status;
+    public int getOtpCode() {
+        return otpCode;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    public void setOtpCode(int otpCode) {
+        this.otpCode = otpCode;
+    }
+
+    public String getReferenceCode() {
+        return referenceCode;
+    }
+
+    public void setReferenceCode(String referenceCode) {
+        this.referenceCode = referenceCode;
+    }
+
+    public String getUuId() {
+        return uuId;
+    }
+
+    public void setUuId(String uuId) {
+        this.uuId = uuId;
+    }
+
+    public String getReqId() {
+        return reqId;
+    }
+
+    public void setReqId(String reqId) {
+        this.reqId = reqId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getTel() {
+        return tel;
+    }
+
+    public void setTel(String tel) {
+        this.tel = tel;
+    }
+
+    public Owner getOwner() {
+        return owner;
+    }
+
+    public void setOwner(Owner owner) {
+        this.owner = owner;
     }
 }
 

@@ -1,11 +1,15 @@
 package com.example.demoOTP.Controller;
 
 import com.example.demoOTP.Config.MD5;
+import com.example.demoOTP.Config.Request.otprequest;
 import com.example.demoOTP.Model.ServiceOTP;
-import com.example.demoOTP.Model.User;
+import com.example.demoOTP.Model.Owner;
 import com.example.demoOTP.Service.ServiceOTPService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
 
 @RestController
 public class ServiceOTPController {
@@ -14,41 +18,56 @@ public class ServiceOTPController {
     @Autowired
     private MD5 md5 ;
 
-    @Autowired
-    public void AutoCheckOTPTime(){
-        otpService.AutoCheckOTPTime();
-    }
-
     @GetMapping("/randomOTP")
-    public ServiceOTP RequestServiceOTP(@RequestHeader String Secret) throws Exception {
+    public ServiceOTP RequestServiceOTP(@RequestHeader String Secret , @RequestBody otprequest request) throws Exception {
         ServiceOTP numOTP = new ServiceOTP();
+        String email = request.getEmail();
+        String tal = request.getNumberPhone();
+        String nameServie = request.getNameService();
+
+        Owner owner = otpService.getUserByNameService(nameServie);
+        if(owner == null ){
+            throw new Exception("No data Owner");
+        }
+
+        String reqid = "123";
+
+        String type = "";
+        String data = "";
+        if(email != null && email != ""){
+            type = "email" ;
+            data = email ;
+        }else{
+            type = "phone_number" ;
+            data = tal ;
+        }
 
         if(Secret == null && Secret == "" ){
             throw new Exception("No Secretkey in Header");
         }else{
-            numOTP = otpService.randomCode();
+            numOTP = otpService.randomCode(type , data , nameServie , reqid);
         }
 
         return numOTP;
     }
 
-    @PostMapping("/RequestSecretKey")
-    public String RequestSecretKey(@PathVariable String username ) {
-
-        return "" ;
-    }
-
     @PostMapping("/CheckOTP")
-    public String CheckOTP(@RequestParam int code ){
-      return otpService.CheckTimeOTP(code);
+    public String CheckOTP(@RequestBody ServiceOTP serviceOTP ){
+        int code = serviceOTP.getOtpCode();
+        String reference = serviceOTP.getReferenceCode();
+      return otpService.CheckTimeOTP(code , reference);
     }
 
     @PostMapping("/hashMD5")
-    public String HashMD5(@RequestParam String SecretKey ,
-                          @RequestParam String username){
+    public String HashMD5(@RequestBody Owner owner){
+        String SecretKey = owner.getSecretKey();
+        String nameService = owner.getNameService();
+
         String hashSecretKey = md5.getMd5(SecretKey);
-        User user = otpService.getUserByUsername(username);
-        String key = md5.getMd5(user.getSecretKey().getSecretKey());
+
+        owner = otpService.getUserByNameService(nameService);
+
+        String key = md5.getMd5(owner.getSecretKey());
 
         String message = "" ;
 
@@ -60,5 +79,10 @@ public class ServiceOTPController {
         System.out.println(message );
 
         return message ;
+    }
+
+    @GetMapping("/getalloener")
+    public List<Owner> getalloener(){
+        return otpService.getAllUSer();
     }
 }
