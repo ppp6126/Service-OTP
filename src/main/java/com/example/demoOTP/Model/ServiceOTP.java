@@ -18,7 +18,7 @@ public class ServiceOTP {
     private Date crateDate ;
     private Date compleseDate ;
     private Calendar expiredDate ;
-    private int otpCode ;
+    private String otpCode ;
     private String referenceCode ;
     private String uuId;
     private String reqId ;
@@ -32,7 +32,7 @@ public class ServiceOTP {
     public ServiceOTP() {
     }
 
-    public ServiceOTP(Date crateDate, Date compleseDate, Calendar expiredDate, int otpCode, String referenceCode, String uuId, String reqId) {
+    public ServiceOTP(Date crateDate, Date compleseDate, Calendar expiredDate, String otpCode, String referenceCode, String uuId, String reqId) {
         this.crateDate = crateDate;
         this.compleseDate = compleseDate;
         this.expiredDate = expiredDate;
@@ -74,11 +74,11 @@ public class ServiceOTP {
         this.expiredDate = expiredDate;
     }
 
-    public int getOtpCode() {
+    public String getOtpCode() {
         return otpCode;
     }
 
-    public void setOtpCode(int otpCode) {
+    public void setOtpCode(String otpCode) {
         this.otpCode = otpCode;
     }
 

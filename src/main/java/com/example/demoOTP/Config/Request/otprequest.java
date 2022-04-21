@@ -4,14 +4,14 @@ public class otprequest {
     private String email ;
     private String numberPhone ;
     private String nameService;
-
+    private String reqid ;
     public otprequest() {
     }
 
-    public otprequest(String email, String numberPhone, String nameService) {
+    public otprequest(String email, String nameService, String reqid) {
         this.email = email;
-        this.numberPhone = numberPhone;
         this.nameService = nameService;
+        this.reqid = reqid;
     }
 
     public String getEmail() {
@@ -36,5 +36,13 @@ public class otprequest {
 
     public void setNameService(String nameService) {
         this.nameService = nameService;
+    }
+
+    public String getReqid() {
+        return reqid;
+    }
+
+    public void setReqid(String reqid) {
+        this.reqid = reqid;
     }
 }

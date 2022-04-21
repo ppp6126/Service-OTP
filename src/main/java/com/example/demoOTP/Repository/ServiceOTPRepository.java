@@ -13,6 +13,6 @@ public interface ServiceOTPRepository extends JpaRepository<ServiceOTP , Long> {
 
     Optional<ServiceOTP> findByReferenceCodeEquals(String referencekey);
 
-    ServiceOTP findByOtpCode(int code);
+    ServiceOTP findByOtpCode(String code);
 
 }

@@ -1,10 +1,14 @@
 package com.example.demoOTP.Service;
 
+import com.example.demoOTP.Config.MD5;
+import com.example.demoOTP.Config.Reponse.reponseError;
+import com.example.demoOTP.Config.Reponse.responseSuccessfully;
+import com.example.demoOTP.Config.Request.otprequest;
 import com.example.demoOTP.Config.SendEmail;
-import com.example.demoOTP.Model.ServiceOTP;
 import com.example.demoOTP.Model.Owner;
-import com.example.demoOTP.Repository.ServiceOTPRepository;
+import com.example.demoOTP.Model.ServiceOTP;
 import com.example.demoOTP.Repository.OwnerRepository;
+import com.example.demoOTP.Repository.ServiceOTPRepository;
 import org.apache.commons.lang.RandomStringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -22,12 +26,57 @@ public class ServiceOTPServiceImp implements ServiceOTPService{
     OwnerRepository userRepo;
     @Autowired
     SendEmail sendEmail ;
+    @Autowired
+    private MD5 md5 ;
 
+    reponseError reponseError = new reponseError();
+    responseSuccessfully responseSuccessfully = new responseSuccessfully();
     @Override
-    public ServiceOTP randomCode(String type , String data , String serviceName , String reqid) throws Exception {
+    public Object randomCode(String secret, otprequest request) throws Exception {
+        String email = request.getEmail();
+        String nameServie = request.getNameService();
+        String reqid = request.getReqid();
+
+        String type = "";
+        String data = "";
+
+        reponseError reponseError = new reponseError();
+        Owner owner = userRepo.findByNameService(nameServie);
+
+        if(owner == null ){
+            reponseError.setError("Error Owner");
+            reponseError.setMessage("No data Owner");
+            return reponseError;
+        }else{
+            if(email != null && email != ""){
+                type = "email" ;
+                data = email ;
+            }else{
+                reponseError.setError("Error Email");
+                reponseError.setMessage("Email not entered or does not exist ");
+                return reponseError;
+            }
+        }
+
+
+        if(reqid != null || !reqid.equals("")){
+            if(!secret.isEmpty()){
+                String message = "" ;
+                String key = md5.getMd5(owner.getSecretKey()+reqid);
+                if(!secret.equals(key)){
+                    reponseError.setError("Error Secretkey");
+                    reponseError.setMessage("No Secretkey in Header");
+                    return reponseError;
+                }
+            }
+        }else{
+            reponseError.setError("Error Request Id");
+            reponseError.setMessage("Request Id Not Found");
+            return reponseError;
+        }
+
         String message = "";
         ServiceOTP otp = new ServiceOTP();
-        Owner owner = new Owner();
 
         SecureRandom random = new SecureRandom();
         int num = random.nextInt(100000);
@@ -69,7 +118,7 @@ public class ServiceOTPServiceImp implements ServiceOTPService{
         List<ServiceOTP> listOTP = serviceOTPRepo.findAll();
         Optional<ServiceOTP> Oreferencekey = serviceOTPRepo.findByReferenceCodeEquals(referencekey);
 
-        owner = userRepo.findByNameService(serviceName);
+        owner = userRepo.findByNameService(nameServie);
         otp.setOwner(owner);
 
         if(!Oreferencekey.isPresent()){
@@ -84,10 +133,10 @@ public class ServiceOTPServiceImp implements ServiceOTPService{
 
         if(listOTP.size() > 0){
             for(ServiceOTP ck :listOTP){
-                int key = ck.getOtpCode();
-                if(key != code){
+                String key = ck.getOtpCode();
+                if(!key.equals(code)){
                     otp.setCrateDate(date);
-                    otp.setOtpCode(code);
+                    otp.setOtpCode(String.valueOf(code));
                     otp.setExpiredDate(calendarExpired);
                     otp.setUuId(String.valueOf(uuid));
                     otp.setReqId(reqid);
@@ -97,11 +146,9 @@ public class ServiceOTPServiceImp implements ServiceOTPService{
                     break;
                 }
             }
-
         }else {
-
             otp.setCrateDate(date);
-            otp.setOtpCode(code);
+            otp.setOtpCode(String.valueOf(code));
             otp.setExpiredDate(calendarExpired);
             otp.setUuId(String.valueOf(uuid));
             otp.setReqId(reqid);
@@ -111,7 +158,8 @@ public class ServiceOTPServiceImp implements ServiceOTPService{
         }
 
         if(message.equals("saved successfully")){
-            return otp;
+            responseSuccessfully successfully =  new responseSuccessfully("200 OK",otp.getUuId(),otp.getReferenceCode());
+            return successfully;
         }else {
             throw new Exception("pless random key again");
         }
@@ -123,30 +171,53 @@ public class ServiceOTPServiceImp implements ServiceOTPService{
     }
 
     @Override
-    public String CheckTimeOTP(int code, String reference) {
-        ServiceOTP servicedata = serviceOTPRepo.findByOtpCode(code);
+    public Object CheckTimeOTP(String code, String reference, String uuid) {
 
+        if(code == null || code.equals("")){
+            reponseError.setError("Error Code");
+            reponseError.setMessage("did not enter the code ");
+            return reponseError;
+        }
+        if(reference == null || reference.equals("")){
+            reponseError.setError("Error reference");
+            reponseError.setMessage("did not enter the reference code ");
+            return reponseError;
+        }
+        if(uuid == null || uuid.equals("")){
+            reponseError.setError("Error uuid");
+            reponseError.setMessage("did not enter the uuid ");
+            return reponseError;
+        }
+        ServiceOTP servicedata = serviceOTPRepo.findByOtpCode(code);
         Calendar date = servicedata.getExpiredDate();
         String ref = servicedata.getReferenceCode();
-
+        String uid = servicedata.getUuId();
         int ExpirationTime = date.getTime().getMinutes();
 
         Calendar calendar = Calendar.getInstance();
         int TimeNow = calendar.getTime().getMinutes();
 
         if(ref.equals(reference)) {
-            if (TimeNow > ExpirationTime) {
-                Date dateComplese = new Date();
-                servicedata.setCompleseDate(dateComplese);
-                serviceOTPRepo.save(servicedata);
-
-                return "OK";
-            } else {
-                return "Code Expired";
+            if(uid.equals(uuid)){
+                if (TimeNow < ExpirationTime) {
+                    Date dateComplese = new Date();
+                    servicedata.setCompleseDate(dateComplese);
+                    serviceOTPRepo.save(servicedata);
+                    responseSuccessfully.setMessage("Use Code Successfully");
+                    return responseSuccessfully;
+                } else {
+                    reponseError.setMessage("Code Expired");
+                    return reponseError;
+                }
+            }else {
+                reponseError.setError("Error uuid");
+                reponseError.setMessage("Uuid mismatch");
+                return reponseError;
             }
-        }else{
-            return "Reference Code Not Complish";
         }
+        reponseError.setError("Error Reference Code");
+        reponseError.setMessage("Reference Code Not Mismatch");
+        return reponseError;
     }
 
     @Override
